@@ -1,0 +1,125 @@
+2025-07-24 02:01:10 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:01:10 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:01:10 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:01:10 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:01:10 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:01:49 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:01:49 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:01:49 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:01:49 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:01:49 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:02:16 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:02:16 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:02:16 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:02:16 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:02:16 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:03:04 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:03:04 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:03:04 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:03:04 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:03:04 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:03:08 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:03:08 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:03:08 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:03:08 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:03:08 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:03:12 +07:00: Error: no signature
+2025-07-24 02:03:12 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:20:18)
+2025-07-24 02:03:12 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:50:9
+2025-07-24 02:03:12 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:03:12 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:149:13)
+2025-07-24 02:03:12 +07:00:     at Route.dispatch (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:119:3)
+2025-07-24 02:03:12 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:03:12 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:284:15
+2025-07-24 02:03:12 +07:00:     at Function.process_params (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:346:12)
+2025-07-24 02:03:12 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:280:10)
+2025-07-24 02:03:12 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:646:15
+2025-07-24 02:05:01 +07:00: Error: no signature
+2025-07-24 02:05:01 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:20:18)
+2025-07-24 02:05:01 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:50:9
+2025-07-24 02:05:01 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:05:01 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:149:13)
+2025-07-24 02:05:01 +07:00:     at Route.dispatch (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:119:3)
+2025-07-24 02:05:01 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:05:01 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:284:15
+2025-07-24 02:05:01 +07:00:     at Function.process_params (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:346:12)
+2025-07-24 02:05:01 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:280:10)
+2025-07-24 02:05:01 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:646:15
+2025-07-24 02:05:40 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:05:40 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:05:40 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:05:40 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:05:40 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:05:44 +07:00: Error: no signature
+2025-07-24 02:05:44 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:20:18)
+2025-07-24 02:05:44 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:50:9
+2025-07-24 02:05:44 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:05:44 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:149:13)
+2025-07-24 02:05:44 +07:00:     at Route.dispatch (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:119:3)
+2025-07-24 02:05:44 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:05:44 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:284:15
+2025-07-24 02:05:44 +07:00:     at Function.process_params (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:346:12)
+2025-07-24 02:05:44 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:280:10)
+2025-07-24 02:05:44 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:646:15
+2025-07-24 02:06:01 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:06:01 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:06:01 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:06:01 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:06:01 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:06:06 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:06:06 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:06:06 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:06:06 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:06:06 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:07:24 +07:00: Error: no signature
+2025-07-24 02:07:24 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:20:18)
+2025-07-24 02:07:24 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:50:9
+2025-07-24 02:07:24 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:07:24 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:149:13)
+2025-07-24 02:07:24 +07:00:     at Route.dispatch (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/route.js:119:3)
+2025-07-24 02:07:24 +07:00:     at Layer.handle [as handle_request] (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/layer.js:95:5)
+2025-07-24 02:07:24 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:284:15
+2025-07-24 02:07:24 +07:00:     at Function.process_params (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:346:12)
+2025-07-24 02:07:24 +07:00:     at next (/Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:280:10)
+2025-07-24 02:07:24 +07:00:     at /Users/yok/Development/TEXTBot/backend/line/node_modules/express/lib/router/index.js:646:15
+2025-07-24 02:09:21 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:09:21 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:09:21 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:09:21 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:09:21 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:11:51 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:11:51 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:11:51 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:11:51 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:11:51 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:12:38 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:12:38 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:12:38 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:12:38 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:12:38 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:12:43 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:12:43 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:12:43 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:12:43 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:12:43 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:14:21 +07:00: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object
+2025-07-24 02:14:21 +07:00:     at Hmac.update (node:internal/crypto/hash:115:11)
+2025-07-24 02:14:21 +07:00:     at validateSignature (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/validate-signature.js:14:74)
+2025-07-24 02:14:21 +07:00:     at _middleware (/Users/yok/Development/TEXTBot/backend/line/node_modules/@line/bot-sdk/dist/middleware.js:36:47)
+2025-07-24 02:14:21 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:16:34 +07:00: Error processing image with OCR: Error: OCR API error: 404
+2025-07-24 02:16:34 +07:00:     at WebhookHandler.handleImageMessage (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:150:15)
+2025-07-24 02:16:34 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:16:34 +07:00:     at async WebhookHandler.handleMessage (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:69:16)
+2025-07-24 02:16:34 +07:00:     at async WebhookHandler.handleEvent (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:33:16)
+2025-07-24 02:16:34 +07:00:     at async Promise.all (index 0)
+2025-07-24 02:16:34 +07:00:     at async WebhookHandler.handleEvents (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:21:21)
+2025-07-24 02:16:34 +07:00:     at async file:///Users/yok/Development/TEXTBot/backend/line/server.js:64:21
+2025-07-24 02:18:15 +07:00: Error processing image with OCR: Error: OCR API error: 400
+2025-07-24 02:18:15 +07:00:     at WebhookHandler.handleImageMessage (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:150:15)
+2025-07-24 02:18:15 +07:00:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-07-24 02:18:15 +07:00:     at async WebhookHandler.handleMessage (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:69:16)
+2025-07-24 02:18:15 +07:00:     at async WebhookHandler.handleEvent (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:33:16)
+2025-07-24 02:18:15 +07:00:     at async Promise.all (index 0)
+2025-07-24 02:18:15 +07:00:     at async WebhookHandler.handleEvents (file:///Users/yok/Development/TEXTBot/backend/line/webhook/handler.js:21:21)
+2025-07-24 02:18:15 +07:00:     at async file:///Users/yok/Development/TEXTBot/backend/line/server.js:64:21

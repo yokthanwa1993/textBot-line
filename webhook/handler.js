@@ -136,13 +136,13 @@ export class WebhookHandler {
       const dataUrl = `data:image/jpeg;base64,${base64Image}`;
       
       // เรียก OCR API ผ่าน external service โดยส่ง base64
-      const ocrResponse = await fetch('https://ocr.wwoom.com/api', {
+      const ocrResponse = await fetch('https://ocr.wwoom.com/api/v1', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          base64: dataUrl
+          base64Image: base64Image
         })
       });
       
