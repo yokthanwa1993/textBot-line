@@ -132,23 +132,24 @@ export class WebhookHandler {
       // ดาวน์โหลดรูปภาพจาก LINE
       const imageBuffer = await this.lineService.getMessageContent(message.id);
       
-      // เรียก OCR API ผ่าน external service โดยส่ง URL
+      // แปลงเป็น base64
+      const base64Image = imageBuffer.toString('base64');
+      
+      // เรียก OCR API โดยส่ง base64
       const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1';
       
-      // ใช้ LINE Content API URL พร้อม Authorization
-      const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-      const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
+      console.log('Calling OCR API with base64 image data');
       
-      console.log('Calling OCR API with LINE Content URL:', imageUrl);
-      
-      // ใช้ GET method พร้อม Authorization header
-      const urlWithParam = `${ocrApiUrl}?url=${encodeURIComponent(imageUrl)}`;
-      const ocrResponse = await fetch(urlWithParam, {
-        method: 'GET',
+      // ใช้ POST method ส่ง base64 ใน JSON body
+      const ocrResponse = await fetch(ocrApiUrl, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${lineChannelAccessToken}`,
+          'Content-Type': 'application/json',
           'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)'
-        }
+        },
+        body: JSON.stringify({
+          base64Image: base64Image
+        })
       });
       
       if (!ocrResponse.ok) {
