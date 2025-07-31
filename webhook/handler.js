@@ -136,6 +136,7 @@ export class WebhookHandler {
 
       // ตรวจสอบว่ามี OCR API URL หรือไม่
       const ocrApiUrl = process.env.OCR_API_URL;
+      
       if (!ocrApiUrl) {
         console.log('OCR_API_URL not configured, sending simple confirmation');
         return await this.lineService.replyMessage(replyToken, '✅ ได้รับรูปภาพแล้วครับ แต่ยังไม่ได้ตั้งค่า OCR API');
@@ -191,14 +192,17 @@ export class WebhookHandler {
       console.log('OCR Text Length:', ocrResult.text?.length || 0);
       console.log('OCR Text Preview:', ocrResult.text?.substring(0, 100) || 'No text');
 
-      if (!ocrResult.success) {
-        console.error('OCR processing failed:', ocrResult.error);
-        return await this.lineService.replyMessage(replyToken, `⚠️ ไม่สามารถประมวลผล OCR ได้: ${ocrResult.error || 'Unknown error'}`);
+      // รองรับ OCR API format: { text: "..." }
+      const ocrText = ocrResult.text || '';
+
+      if (!ocrText || ocrText.trim() === '') {
+        console.log('OCR returned empty text');
+        return await this.lineService.replyMessage(replyToken, '⚠️ ไม่พบข้อความในรูปภาพ');
       }
 
       // สร้าง Flex Message สำหรับแสดงผล OCR (ไม่ส่ง imageUrl เพราะเป็น internal URL)
       const flexContents = FlexMessageTemplates.createOCRResultFlex(
-        ocrResult.text,
+        ocrText,
         message.id,
         userId,
         null // ไม่ส่ง imageUrl
