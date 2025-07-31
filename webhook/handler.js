@@ -126,6 +126,7 @@ export class WebhookHandler {
   // จัดการรูปภาพ
   async handleImageMessage(replyToken, message, userId) {
     console.log(`Image message from ${userId}, messageId: ${message.id}`);
+    console.log('Message object:', JSON.stringify(message, null, 2));
     
     try {
       // ดาวน์โหลดรูปภาพจาก LINE
