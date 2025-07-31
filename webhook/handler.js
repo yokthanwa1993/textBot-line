@@ -88,18 +88,18 @@ export class WebhookHandler {
     const { text } = event.message;
     const { replyToken, source } = event;
     const userId = source?.userId || 'unknown-user';
-    
+
     console.log(`Received text message from ${userId}: ${text}`);
-    
+
     // เก็บข้อความจริงและได้ messageId
     const savedMessage = this.lineService.addMessage(text, userId);
-    
+
     // ตรวจสอบ reply token สำหรับ test mode
     if (!replyToken || replyToken === 'test-token-123') {
       console.log('Test message, skipping reply');
       return { success: true, message: 'Message received (test mode)', sentMessages: 0 };
     }
-    
+
     const timestamp = new Date().toISOString();
     const flexContents = FlexMessageTemplates.createLiffMessageFlex(text, userId, timestamp, savedMessage.id);
     const altText = `ได้รับข้อความ: ${text}`;
@@ -126,7 +126,7 @@ export class WebhookHandler {
   // จัดการรูปภาพ
   async handleImageMessage(replyToken, message, userId) {
     console.log(`Image message from ${userId}, messageId: ${message.id}`);
-    
+
     try {
       // ตรวจสอบ reply token สำหรับ test mode
       if (!replyToken || replyToken === 'test-token-123') {
@@ -141,21 +141,18 @@ export class WebhookHandler {
         return await this.lineService.replyMessage(replyToken, '✅ ได้รับรูปภาพแล้วครับ แต่ยังไม่ได้ตั้งค่า OCR API');
       }
 
-      // ส่งข้อความยืนยันการรับรูปภาพก่อน
-      await this.lineService.replyMessage(replyToken, '📸 ได้รับรูปภาพแล้วครับ กำลังประมวลผล OCR...');
-      
       // ดาวน์โหลดรูปภาพจาก LINE
       const imageBuffer = await this.lineService.getMessageContent(message.id);
       console.log(`Downloaded image buffer size: ${imageBuffer.length} bytes`);
-      
+
       // สร้าง URL สำหรับรูปภาพ
       const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
       const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-      
+
       console.log('Calling OCR API:', ocrApiUrl);
       console.log('Image URL:', imageUrl);
       console.log('Access Token (first 20 chars):', lineChannelAccessToken?.substring(0, 20) + '...');
-      
+
       // เรียก OCR API ด้วย POST method
       const ocrResponse = await fetch(`${ocrApiUrl}/ocr`, {
         method: 'POST',
@@ -168,7 +165,7 @@ export class WebhookHandler {
           authorization: `Bearer ${lineChannelAccessToken}`
         })
       });
-      
+
       if (!ocrResponse.ok) {
         const errorText = await ocrResponse.text();
         console.error('OCR API error details:', {
@@ -176,36 +173,36 @@ export class WebhookHandler {
           statusText: ocrResponse.statusText,
           responseText: errorText
         });
-        
-        // ส่งข้อความแจ้งเตือนแทน (ใช้ push message เพราะ reply token ใช้ไปแล้ว)
-        return await this.lineService.sendTextMessage(userId, `⚠️ OCR API ไม่สามารถใช้งานได้ในขณะนี้ (Error ${ocrResponse.status})`);
+
+        // ส่งข้อความแจ้งเตือนแทน
+        return await this.lineService.replyMessage(replyToken, `⚠️ OCR API ไม่สามารถใช้งานได้ในขณะนี้ (Error ${ocrResponse.status})`);
       }
-      
+
       const ocrResult = await ocrResponse.json();
       console.log('OCR Result:', JSON.stringify(ocrResult, null, 2));
-      
+
       if (!ocrResult.success) {
         console.error('OCR processing failed:', ocrResult.error);
-        return await this.lineService.sendTextMessage(userId, `⚠️ ไม่สามารถประมวลผล OCR ได้: ${ocrResult.error || 'Unknown error'}`);
+        return await this.lineService.replyMessage(replyToken, `⚠️ ไม่สามารถประมวลผล OCR ได้: ${ocrResult.error || 'Unknown error'}`);
       }
-      
+
       // สร้าง Flex Message สำหรับแสดงผล OCR
       const flexContents = FlexMessageTemplates.createOCRResultFlex(
-        ocrResult.text, 
-        message.id, 
-        userId, 
+        ocrResult.text,
+        message.id,
+        userId,
         `https://api-data.line.me/v2/bot/message/${message.id}/content`
       );
-      
-      // ส่ง Flex Message ด้วย push message (เพราะ reply token ใช้ไปแล้ว)
-      return await this.lineService.sendFlexMessageObject(userId, 'ผลการ OCR', flexContents);
-      
+
+      // ส่ง Flex Message ด้วย reply message
+      return await this.lineService.replyFlexMessage(replyToken, 'ผลการ OCR', flexContents);
+
     } catch (error) {
       console.error('Error processing image with OCR:', error);
-      
+
       // ส่งข้อความแจ้งข้อผิดพลาด
       try {
-        return await this.lineService.sendTextMessage(userId, `❌ เกิดข้อผิดพลาด: ${error.message}`);
+        return await this.lineService.replyMessage(replyToken, `❌ เกิดข้อผิดพลาด: ${error.message}`);
       } catch (sendError) {
         console.error('Error sending error message:', sendError);
         return { success: false, message: `Failed to process image and send error message: ${error.message}`, sentMessages: 0 };
@@ -249,7 +246,7 @@ export class WebhookHandler {
   async handleFollow(event) {
     const userId = event.source.userId;
     console.log(`User ${userId} followed the bot`);
-    
+
     const welcomeMessage = 'ยินดีต้อนรับครับ! 🎉\nขอบคุณที่เพิ่มเป็นเพื่อนนะครับ';
     return await this.lineService.replyMessage(event.replyToken, welcomeMessage);
   }
@@ -266,7 +263,7 @@ export class WebhookHandler {
   async handleJoin(event) {
     const { groupId, roomId } = event.source;
     console.log(`Bot joined group/room: ${groupId || roomId}`);
-    
+
     const welcomeMessage = 'สวัสดีครับ! ขอบคุณที่เชิญมาเข้ากลุ่มนะครับ 🤖';
     return await this.lineService.replyMessage(event.replyToken, welcomeMessage);
   }
@@ -295,13 +292,13 @@ export class WebhookHandler {
   async handlePostback(event) {
     const { data, params } = event.postback;
     console.log(`Postback data: ${data}`, params);
-    
+
     // ตรวจสอบ reply token สำหรับ test mode
     if (!event.replyToken || event.replyToken === 'test-reply-token') {
       console.log('Test postback, skipping reply');
       return { success: true, message: 'Postback received (test mode)', sentMessages: 0 };
     }
-    
+
     // ตรวจสอบ action
     if (data.startsWith('action=save_and_open_liff')) {
       const urlParams = new URLSearchParams(data.replace('action=save_and_open_liff&', ''));
@@ -321,20 +318,20 @@ export class WebhookHandler {
       const msg = params.get('message') || '';
       const uid = params.get('userId') || '';
       const mid = params.get('messageId') || '';
-      
+
       // บันทึกข้อความลงระบบก่อน
       const savedMessage = await this.lineService.addMessage(msg, uid);
       console.log('=== SAVE_AND_CLOSE_LIFF DEBUG ===');
       console.log('Message:', msg);
       console.log('UserId:', uid);
       console.log('SavedMessage:', savedMessage);
-      
+
       const ts = new Date().toISOString();
       const flex = FlexMessageTemplates.createEditResultFlex(msg, uid, ts, savedMessage.id);
       console.log('Generated Flex:', JSON.stringify(flex, null, 2));
       const alt = 'แก้ไขข้อความสำเร็จ';
       console.log('Alt text:', alt);
-      
+
       const result = await this.lineService.replyFlexMessage(event.replyToken, alt, flex);
       console.log('Reply result:', result);
       return result;
@@ -349,7 +346,7 @@ export class WebhookHandler {
   async handleBeacon(event) {
     const { hwid, type } = event.beacon;
     console.log(`Beacon event: ${type} from ${hwid}`);
-    
+
     const replyMessage = 'ตรวจพบ Beacon แล้วครับ! 📡';
     return await this.lineService.replyMessage(event.replyToken, replyMessage);
   }
@@ -358,7 +355,7 @@ export class WebhookHandler {
   async handleAccountLink(event) {
     const { result, nonce } = event.link;
     console.log(`Account link: ${result}, nonce: ${nonce}`);
-    
+
     const replyMessage = result === 'ok' ? 'เชื่อมต่อบัญชีสำเร็จ! ✅' : 'เชื่อมต่อบัญชีไม่สำเร็จ ❌';
     return await this.lineService.replyMessage(event.replyToken, replyMessage);
   }
