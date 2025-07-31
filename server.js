@@ -6,6 +6,7 @@ import { typeDefs } from './schema/typeDefs.js';
 import { resolvers } from './resolvers/index.js';
 import { WebhookHandler } from './webhook/handler.js';
 import { LineService } from './services/lineService.js';
+import { GoogleSheetsService } from './services/googleSheetsService.js';
 
 // Load environment variables
 dotenv.config();
@@ -18,9 +19,10 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Initialize LINE services
-const lineService = new LineService();
-const webhookHandler = new WebhookHandler(lineService);
+// Initialize services
+const googleSheetsService = new GoogleSheetsService();
+const lineService = new LineService(googleSheetsService);
+const webhookHandler = new WebhookHandler(lineService, googleSheetsService);
 
 // GraphQL Server
 const server = new ApolloServer({

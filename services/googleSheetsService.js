@@ -245,6 +245,63 @@ export class GoogleSheetsService {
     }
   }
 
+  // แก้ไขข้อความใน Google Sheets
+  async editMessage(originalText, newText) {
+    try {
+      if (!this.sheets) {
+        await this.initialize();
+      }
+
+      // หาข้อมูลทั้งหมดใน sheet
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId: this.spreadsheetId,
+        range: `${this.sheetName}!A:B`
+      });
+
+      const rows = response.data.values || [];
+      
+      // หาแถวที่มีข้อความตรงกัน (ข้าม header)
+      let foundRowIndex = -1;
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i][1] === originalText) {
+          foundRowIndex = i + 1; // +1 เพราะ Google Sheets เริ่มที่ 1
+          break;
+        }
+      }
+
+      if (foundRowIndex === -1) {
+        console.log('❌ ไม่พบข้อความที่ต้องการแก้ไขใน Google Sheets');
+        return { success: false, message: 'Message not found in Google Sheets' };
+      }
+
+      // อัปเดตข้อความในแถวที่พบ
+      const updateRequest = {
+        spreadsheetId: this.spreadsheetId,
+        range: `${this.sheetName}!B${foundRowIndex}`, // คอลัมน์ B ของแถวที่พบ
+        valueInputOption: 'RAW',
+        resource: {
+          values: [[newText]]
+        }
+      };
+
+      const updateResponse = await this.sheets.spreadsheets.values.update(updateRequest);
+      console.log(`✅ Message updated in Google Sheets: ${updateResponse.data.updatedCells} cells updated`);
+      
+      return {
+        success: true,
+        message: 'Message updated in Google Sheets successfully',
+        updatedCells: updateResponse.data.updatedCells
+      };
+
+    } catch (error) {
+      console.error('❌ Error updating message in Google Sheets:', error);
+      return {
+        success: false,
+        message: `Failed to update message in Google Sheets: ${error.message}`
+      };
+    }
+  }
+
   // ตรวจสอบการเชื่อมต่อ
   async testConnection() {
     try {

@@ -1,7 +1,7 @@
 import { Client } from '@line/bot-sdk';
 
 export class LineService {
-  constructor() {
+  constructor(googleSheetsService = null) {
     this.client = new Client({
       channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
       channelSecret: process.env.LINE_CHANNEL_SECRET,
@@ -10,6 +10,9 @@ export class LineService {
     // เก็บข้อความจริงใน memory
     this.messages = [];
     this.messageIdCounter = 1;
+    
+    // Google Sheets service
+    this.googleSheetsService = googleSheetsService;
   }
 
   // === Message Storage ===
@@ -37,9 +40,23 @@ export class LineService {
     try {
       const messageIndex = this.messages.findIndex(msg => msg.id === messageId);
       if (messageIndex !== -1) {
+        const originalText = this.messages[messageIndex].text;
+        
+        // อัปเดตใน memory
         this.messages[messageIndex].text = newText;
         this.messages[messageIndex].timestamp = new Date().toISOString();
         console.log(`แก้ไขข้อความ ID: ${messageId} เป็น: ${newText}`);
+        
+        // อัปเดตใน Google Sheets
+        if (this.googleSheetsService) {
+          try {
+            await this.googleSheetsService.editMessage(originalText, newText);
+            console.log('✅ Message updated in Google Sheets');
+          } catch (error) {
+            console.error('❌ Failed to update message in Google Sheets:', error);
+          }
+        }
+        
         return this.messages[messageIndex];
       }
       console.log(`ไม่พบข้อความ ID: ${messageId} ที่จะแก้ไข`);
