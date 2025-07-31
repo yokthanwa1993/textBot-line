@@ -131,51 +131,37 @@ export class WebhookHandler {
       // ดาวน์โหลดรูปภาพจาก LINE
       const imageBuffer = await this.lineService.getMessageContent(message.id);
       
-      // สร้าง URL สำหรับรูปภาพ (ถ้ามี LINE Content API URL)
-      // หรือใช้ base64 เป็น fallback
+      // สร้าง URL สำหรับรูปภาพจาก LINE Content API
       let imageUrl = null;
       
-      // ลองสร้าง URL จาก LINE Content API
       try {
         const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
         if (lineChannelAccessToken) {
+          // สร้าง URL ที่เข้าถึงได้จริงจาก LINE Content API
           imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
+          console.log('Created LINE content URL:', imageUrl);
         }
       } catch (urlError) {
-        console.log('Could not create LINE content URL, will use base64 fallback');
+        console.log('Could not create LINE content URL:', urlError.message);
       }
       
       // เรียก OCR API ผ่าน external service โดยส่ง URL
       const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1';
       
-      let ocrResponse;
-      if (imageUrl) {
-        // ใช้ URL parameter - ระบบจะต่อ ?url= เอง
-        const urlWithParam = `${ocrApiUrl}?url=${encodeURIComponent(imageUrl)}`;
-        console.log('Calling OCR API with URL:', urlWithParam);
-        
-        // ใช้ GET method ตามที่ OCR API ต้องการ
-        ocrResponse = await fetch(urlWithParam, {
-          method: 'GET',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)'
-          }
-        });
-      } else {
-        // Fallback ไปใช้ base64
-        const base64Image = imageBuffer.toString('base64');
-        console.log('Calling OCR API with base64 fallback');
-        
-        ocrResponse = await fetch(ocrApiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            base64Image: base64Image
-          })
-        });
-      }
+      // ใช้ base64 เสมอเพราะ LINE Content API ต้องการ authentication
+      const base64Image = imageBuffer.toString('base64');
+      console.log('Calling OCR API with base64 image');
+      
+      // ตรวจสอบว่า OCR API รองรับ base64 หรือไม่
+      const ocrResponse = await fetch(ocrApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          base64Image: base64Image
+        })
+      });
       
       if (!ocrResponse.ok) {
         const errorText = await ocrResponse.text();
