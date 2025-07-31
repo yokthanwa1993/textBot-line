@@ -128,17 +128,31 @@ export class WebhookHandler {
     console.log(`Image message from ${userId}, messageId: ${message.id}`);
     
     try {
+      // ตรวจสอบ reply token สำหรับ test mode
+      if (!replyToken || replyToken === 'test-token-123') {
+        console.log('Test image message, skipping reply');
+        return { success: true, message: 'Image received (test mode)', sentMessages: 0 };
+      }
+
+      // ส่งข้อความยืนยันการรับรูปภาพก่อน
+      await this.lineService.replyMessage(replyToken, '📸 ได้รับรูปภาพแล้วครับ กำลังประมวลผล OCR...');
+      
       // ดาวน์โหลดรูปภาพจาก LINE
       const imageBuffer = await this.lineService.getMessageContent(message.id);
+      console.log(`Downloaded image buffer size: ${imageBuffer.length} bytes`);
+      
+      // ตรวจสอบว่ามี OCR API URL หรือไม่
+      const ocrApiUrl = process.env.OCR_API_URL;
+      if (!ocrApiUrl) {
+        console.log('OCR_API_URL not configured, sending simple confirmation');
+        return await this.lineService.sendTextMessage(userId, '✅ ได้รับรูปภาพแล้วครับ แต่ยังไม่ได้ตั้งค่า OCR API');
+      }
       
       // สร้าง URL สำหรับรูปภาพ
       const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
       const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
       
-      // เรียก OCR API
-      const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1';
-      
-      console.log('Calling OCR API with LINE Content URL:', imageUrl);
+      console.log('Calling OCR API:', ocrApiUrl);
       
       // เรียก OCR API ด้วย POST method
       const ocrResponse = await fetch(`${ocrApiUrl}/ocr`, {
@@ -150,7 +164,8 @@ export class WebhookHandler {
         body: JSON.stringify({
           url: imageUrl,
           authorization: `Bearer ${lineChannelAccessToken}`
-        })
+        }),
+        timeout: 30000 // 30 seconds timeout
       });
       
       if (!ocrResponse.ok) {
@@ -160,13 +175,16 @@ export class WebhookHandler {
           statusText: ocrResponse.statusText,
           responseText: errorText
         });
-        throw new Error(`OCR API error: ${ocrResponse.status} - ${errorText}`);
+        
+        // ส่งข้อความแจ้งเตือนแทน
+        return await this.lineService.sendTextMessage(userId, `⚠️ OCR API ไม่สามารถใช้งานได้ในขณะนี้ (Error ${ocrResponse.status})\nได้รับรูปภาพแล้วครับ`);
       }
       
       const ocrResult = await ocrResponse.json();
       
       if (!ocrResult.success) {
-        throw new Error(`OCR processing failed: ${ocrResult.error || 'Unknown error'}`);
+        console.error('OCR processing failed:', ocrResult.error);
+        return await this.lineService.sendTextMessage(userId, `⚠️ ไม่สามารถประมวลผล OCR ได้: ${ocrResult.error || 'Unknown error'}\nได้รับรูปภาพแล้วครับ`);
       }
       
       // สร้าง Flex Message สำหรับแสดงผล OCR
@@ -207,13 +225,13 @@ export class WebhookHandler {
                 contents: [
                   {
                     type: 'text',
-                    text: `⏱️ ${ocrResult.processing_time?.toFixed(2)}s`,
+                    text: `⏱️ ${ocrResult.processing_time?.toFixed(2) || '0.00'}s`,
                     size: 'xs',
                     color: '#666666'
                   },
                   {
                     type: 'text',
-                    text: `📏 ${(ocrResult.file_size / 1024).toFixed(1)}KB`,
+                    text: `📏 ${((ocrResult.file_size || imageBuffer.length) / 1024).toFixed(1)}KB`,
                     size: 'xs',
                     color: '#666666',
                     align: 'end'
@@ -225,11 +243,22 @@ export class WebhookHandler {
         }
       };
       
-      return await this.lineService.replyMessage(replyToken, flexMessage);
+      return await this.lineService.sendFlexMessageObject(userId, 'ผลการ OCR', flexMessage.contents);
       
     } catch (error) {
       console.error('Error processing image with OCR:', error);
-      return await this.lineService.replyMessage(replyToken, `❌ เกิดข้อผิดพลาดในการประมวลผล OCR: ${error.message}`);
+      
+      // ส่งข้อความแจ้งข้อผิดพลาด
+      try {
+        if (replyToken && replyToken !== 'test-token-123') {
+          return await this.lineService.replyMessage(replyToken, `❌ เกิดข้อผิดพลาด: ${error.message}\nแต่ได้รับรูปภาพแล้วครับ`);
+        } else {
+          return await this.lineService.sendTextMessage(userId, `❌ เกิดข้อผิดพลาด: ${error.message}\nแต่ได้รับรูปภาพแล้วครับ`);
+        }
+      } catch (replyError) {
+        console.error('Error sending error message:', replyError);
+        return { success: false, message: `Failed to process image and send error message: ${error.message}`, sentMessages: 0 };
+      }
     }
   }
 

@@ -55,11 +55,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// LINE Webhook endpoint (without signature validation for now)
+// LINE Webhook endpoint (with proper error handling)
 app.post('/webhook', async (req, res) => {
   try {
-    const events = req.body.events;
+    // ตรวจสอบว่ามี events หรือไม่
+    const events = req.body.events || [];
     console.log(`Received ${events.length} webhook events`);
+    
+    // ถ้าไม่มี events (LINE verification) ให้ตอบ 200
+    if (events.length === 0) {
+      console.log('No events received - likely LINE verification');
+      res.status(200).json({ success: true, message: 'Webhook verification successful' });
+      return;
+    }
     
     const results = await webhookHandler.handleEvents(events);
     console.log('Webhook processing results:', results);
