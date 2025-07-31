@@ -132,90 +132,17 @@ export class WebhookHandler {
       // ดาวน์โหลดรูปภาพจาก LINE
       const imageBuffer = await this.lineService.getMessageContent(message.id);
       
-      // แปลงเป็น base64
-      const base64Image = imageBuffer.toString('base64');
+      // สร้าง URL สำหรับรูปภาพ (ทดสอบง่ายๆ)
+      const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
       
-      // เรียก OCR API โดยส่ง base64
-      const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1';
+      // ส่งข้อความกลับพร้อม URL
+      const replyText = `📸 ได้รับรูปภาพแล้ว!\n\n📋 รายละเอียด:\n- Message ID: ${message.id}\n- User ID: ${userId}\n- URL: ${imageUrl}\n\n💡 หมายเหตุ: URL นี้ต้องใช้ LINE Channel Access Token ในการเข้าถึง`;
       
-      console.log('Calling OCR API with base64 image data');
-      
-      // ใช้ POST method ส่ง base64 ใน JSON body
-      const ocrResponse = await fetch(ocrApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)'
-        },
-        body: JSON.stringify({
-          base64Image: base64Image
-        })
-      });
-      
-      if (!ocrResponse.ok) {
-        const errorText = await ocrResponse.text();
-        console.error('OCR API error details:', {
-          status: ocrResponse.status,
-          statusText: ocrResponse.statusText,
-          responseText: errorText
-        });
-        throw new Error(`OCR API error: ${ocrResponse.status} - ${errorText}`);
-      }
-      
-      const ocrResult = await ocrResponse.json();
-      const timestamp = new Date().toISOString();
-      
-      // ปรับ format ให้เข้ากับ API response
-      const formattedResult = {
-        success: ocrResult.text && ocrResult.text.trim() !== '',
-        text: ocrResult.text || 'ไม่พบข้อความในรูปภาพ',
-        wordCount: ocrResult.text ? ocrResult.text.split(/\s+/).length : 0
-      };
-
-      // เก็บข้อความ OCR ในระบบเพื่อใช้กับปุ่ม EDIT
-      const savedMessage = this.lineService.addMessage(formattedResult.text, userId);
-      
-      // สร้าง Flex Message สำหรับผลลัพธ์ OCR
-      const flexContents = FlexMessageTemplates.createOCRResultFlex(formattedResult.text, savedMessage.id, userId);
-      const altText = formattedResult.success 
-        ? `OCR ผลลัพธ์: ${formattedResult.text.substring(0, 50)}${formattedResult.text.length > 50 ? '...' : ''}`
-        : 'OCR ไม่พบข้อความในรูปภาพ';
-
-      try {
-        // ส่ง Flex Message
-        const result = await this.lineService.replyFlexMessage(replyToken, altText, flexContents);
-        console.log('OCR Flex reply result:', result);
-        return result;
-      } catch (flexError) {
-        console.error('Error replying with OCR flex message:', flexError);
-        
-        // Fallback ไปใช้ text message ธรรมดา
-        if (formattedResult.success && formattedResult.text) {
-          const fallbackText = `📄 ข้อความที่อ่านได้จากรูปภาพ:\n\n${formattedResult.text}`;
-          return await this.lineService.replyMessage(replyToken, fallbackText);
-        } else {
-          return await this.lineService.replyMessage(replyToken, '❌ ไม่พบข้อความในรูปภาพนี้ครับ');
-        }
-      }
+      return await this.lineService.replyMessage(replyToken, replyText);
       
     } catch (error) {
-      console.error('Error processing image with OCR:', error);
-      
-      // สร้าง Flex Message สำหรับ error
-      const errorResult = {
-        success: false,
-        text: `เกิดข้อผิดพลาด: ${error.message}`,
-        wordCount: 0
-      };
-      
-      try {
-        const flexContents = FlexMessageTemplates.createOCRResultFlex(errorResult.text, null, userId);
-        const altText = 'OCR เกิดข้อผิดพลาดในการประมวลผลรูปภาพ';
-        return await this.lineService.replyFlexMessage(replyToken, altText, flexContents);
-      } catch (flexError) {
-        // Fallback สุดท้าย
-        return await this.lineService.replyMessage(replyToken, '❌ เกิดข้อผิดพลาดในการอ่านข้อความจากรูปภาพ กรุณาลองใหม่อีกครั้ง');
-      }
+      console.error('Error processing image:', error);
+      return await this.lineService.replyMessage(replyToken, `❌ เกิดข้อผิดพลาด: ${error.message}`);
     }
   }
 
