@@ -12,15 +12,30 @@ export class GoogleSheetsService {
   // Initialize Google Sheets API
   async initialize() {
     try {
-      // ใช้ Service Account credentials
-      this.auth = new GoogleAuth({
-        keyFile: process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE, // path to service account key file
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-      });
+      let credentials;
 
-      // หรือใช้ credentials จาก environment variable
-      if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-        const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+      // ใช้ Base64 encoded JSON key
+      if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64) {
+        const decodedKey = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64, 'base64').toString('utf-8');
+        credentials = JSON.parse(decodedKey);
+      }
+      // ใช้ JSON string
+      else if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+        credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+      }
+      // ใช้ไฟล์ JSON key
+      else if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE) {
+        this.auth = new GoogleAuth({
+          keyFile: process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE,
+          scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
+      }
+      else {
+        throw new Error('Google Service Account credentials not configured. Please set GOOGLE_SERVICE_ACCOUNT_KEY_BASE64, GOOGLE_SERVICE_ACCOUNT_KEY, or GOOGLE_SERVICE_ACCOUNT_KEY_FILE');
+      }
+
+      // ถ้ามี credentials แล้ว ให้สร้าง auth
+      if (credentials) {
         this.auth = new GoogleAuth({
           credentials,
           scopes: ['https://www.googleapis.com/auth/spreadsheets'],
