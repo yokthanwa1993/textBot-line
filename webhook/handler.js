@@ -154,16 +154,12 @@ export class WebhookHandler {
         const urlWithParam = `${ocrApiUrl}?url=${encodeURIComponent(imageUrl)}`;
         console.log('Calling OCR API with URL:', urlWithParam);
         
-        // ลองใช้ POST method แทน GET
-        ocrResponse = await fetch(ocrApiUrl, {
-          method: 'POST',
+        // ใช้ GET method ตามที่ OCR API ต้องการ
+        ocrResponse = await fetch(urlWithParam, {
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)'
-          },
-          body: JSON.stringify({
-            url: imageUrl
-          })
+          }
         });
       } else {
         // Fallback ไปใช้ base64
