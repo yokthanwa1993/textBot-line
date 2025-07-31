@@ -157,21 +157,17 @@ export class WebhookHandler {
       console.log('User ID:', userId);
       console.log('Access Token (first 20 chars):', lineChannelAccessToken?.substring(0, 20) + '...');
 
-      const requestBody = {
-        url: imageUrl,
-        authorization: `Bearer ${lineChannelAccessToken}`
-      };
-      console.log('Request Body:', JSON.stringify(requestBody, null, 2));
+      // เรียก OCR API ด้วย GET method (wwoom.com format)
+      const apiEndpoint = `${ocrApiUrl}?url=${encodeURIComponent(imageUrl)}`;
+      console.log('API Endpoint:', apiEndpoint);
 
-      // เรียก OCR API ด้วย POST method
-      const ocrResponse = await fetch(`${ocrApiUrl}/ocr`, {
-        method: 'POST',
+      const ocrResponse = await fetch(apiEndpoint, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${lineChannelAccessToken}`,
           'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)',
           'Cache-Control': 'no-cache'
-        },
-        body: JSON.stringify(requestBody)
+        }
       });
 
       if (!ocrResponse.ok) {
