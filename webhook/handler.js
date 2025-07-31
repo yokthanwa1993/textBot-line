@@ -126,23 +126,110 @@ export class WebhookHandler {
   // จัดการรูปภาพ
   async handleImageMessage(replyToken, message, userId) {
     console.log(`Image message from ${userId}, messageId: ${message.id}`);
-    console.log('Message object:', JSON.stringify(message, null, 2));
     
     try {
       // ดาวน์โหลดรูปภาพจาก LINE
       const imageBuffer = await this.lineService.getMessageContent(message.id);
       
-      // สร้าง URL สำหรับรูปภาพ (ทดสอบง่ายๆ)
+      // สร้าง URL สำหรับรูปภาพ
       const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
+      const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
       
-      // ส่งข้อความกลับพร้อม URL
-      const replyText = `📸 ได้รับรูปภาพแล้ว!\n\n📋 รายละเอียด:\n- Message ID: ${message.id}\n- User ID: ${userId}\n- URL: ${imageUrl}\n\n💡 หมายเหตุ: URL นี้ต้องใช้ LINE Channel Access Token ในการเข้าถึง`;
+      // เรียก OCR API
+      const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1';
       
-      return await this.lineService.replyMessage(replyToken, replyText);
+      console.log('Calling OCR API with LINE Content URL:', imageUrl);
+      
+      // เรียก OCR API ด้วย POST method
+      const ocrResponse = await fetch(`${ocrApiUrl}/ocr`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)'
+        },
+        body: JSON.stringify({
+          url: imageUrl,
+          authorization: `Bearer ${lineChannelAccessToken}`
+        })
+      });
+      
+      if (!ocrResponse.ok) {
+        const errorText = await ocrResponse.text();
+        console.error('OCR API error details:', {
+          status: ocrResponse.status,
+          statusText: ocrResponse.statusText,
+          responseText: errorText
+        });
+        throw new Error(`OCR API error: ${ocrResponse.status} - ${errorText}`);
+      }
+      
+      const ocrResult = await ocrResponse.json();
+      
+      if (!ocrResult.success) {
+        throw new Error(`OCR processing failed: ${ocrResult.error || 'Unknown error'}`);
+      }
+      
+      // สร้าง Flex Message สำหรับแสดงผล OCR
+      const flexMessage = {
+        type: 'flex',
+        altText: 'ผลการ OCR',
+        contents: {
+          type: 'bubble',
+          body: {
+            type: 'box',
+            layout: 'vertical',
+            contents: [
+              {
+                type: 'text',
+                text: '🔍 ผลการ OCR',
+                weight: 'bold',
+                size: 'lg',
+                color: '#1DB446'
+              },
+              {
+                type: 'separator',
+                margin: 'md'
+              },
+              {
+                type: 'text',
+                text: ocrResult.text || 'ไม่พบข้อความในรูปภาพ',
+                wrap: true,
+                margin: 'md',
+                size: 'sm'
+              },
+              {
+                type: 'separator',
+                margin: 'md'
+              },
+              {
+                type: 'box',
+                layout: 'horizontal',
+                contents: [
+                  {
+                    type: 'text',
+                    text: `⏱️ ${ocrResult.processing_time?.toFixed(2)}s`,
+                    size: 'xs',
+                    color: '#666666'
+                  },
+                  {
+                    type: 'text',
+                    text: `📏 ${(ocrResult.file_size / 1024).toFixed(1)}KB`,
+                    size: 'xs',
+                    color: '#666666',
+                    align: 'end'
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      };
+      
+      return await this.lineService.replyMessage(replyToken, flexMessage);
       
     } catch (error) {
-      console.error('Error processing image:', error);
-      return await this.lineService.replyMessage(replyToken, `❌ เกิดข้อผิดพลาด: ${error.message}`);
+      console.error('Error processing image with OCR:', error);
+      return await this.lineService.replyMessage(replyToken, `❌ เกิดข้อผิดพลาดในการประมวลผล OCR: ${error.message}`);
     }
   }
 
