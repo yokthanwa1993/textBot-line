@@ -149,21 +149,28 @@ export class WebhookHandler {
       const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
       const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
-      console.log('Calling OCR API:', ocrApiUrl);
+      console.log('=== OCR API CALL DEBUG ===');
+      console.log('OCR API URL:', ocrApiUrl);
       console.log('Image URL:', imageUrl);
+      console.log('Message ID:', message.id);
+      console.log('User ID:', userId);
       console.log('Access Token (first 20 chars):', lineChannelAccessToken?.substring(0, 20) + '...');
+
+      const requestBody = {
+        url: imageUrl,
+        authorization: `Bearer ${lineChannelAccessToken}`
+      };
+      console.log('Request Body:', JSON.stringify(requestBody, null, 2));
 
       // เรียก OCR API ด้วย POST method
       const ocrResponse = await fetch(`${ocrApiUrl}/ocr`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)'
+          'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)',
+          'Cache-Control': 'no-cache'
         },
-        body: JSON.stringify({
-          url: imageUrl,
-          authorization: `Bearer ${lineChannelAccessToken}`
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!ocrResponse.ok) {
@@ -179,19 +186,22 @@ export class WebhookHandler {
       }
 
       const ocrResult = await ocrResponse.json();
+      console.log('=== OCR RESULT DEBUG ===');
       console.log('OCR Result:', JSON.stringify(ocrResult, null, 2));
+      console.log('OCR Text Length:', ocrResult.text?.length || 0);
+      console.log('OCR Text Preview:', ocrResult.text?.substring(0, 100) || 'No text');
 
       if (!ocrResult.success) {
         console.error('OCR processing failed:', ocrResult.error);
         return await this.lineService.replyMessage(replyToken, `⚠️ ไม่สามารถประมวลผล OCR ได้: ${ocrResult.error || 'Unknown error'}`);
       }
 
-      // สร้าง Flex Message สำหรับแสดงผล OCR
+      // สร้าง Flex Message สำหรับแสดงผล OCR (ไม่ส่ง imageUrl เพราะเป็น internal URL)
       const flexContents = FlexMessageTemplates.createOCRResultFlex(
         ocrResult.text,
         message.id,
         userId,
-        `https://api-data.line.me/v2/bot/message/${message.id}/content`
+        null // ไม่ส่ง imageUrl
       );
 
       // ส่ง Flex Message ด้วย reply message
