@@ -196,10 +196,14 @@ export class WebhookHandler {
         return await this.lineService.replyMessage(replyToken, '⚠️ ไม่พบข้อความในรูปภาพ');
       }
 
-      // สร้าง Flex Message สำหรับแสดงผล OCR (ไม่ส่ง imageUrl เพราะเป็น internal URL)
+      // บันทึกข้อความ OCR ลงใน storage
+      const savedMessage = await this.lineService.addMessage(ocrText, userId);
+      console.log('Saved OCR message:', savedMessage);
+
+      // สร้าง Flex Message สำหรับแสดงผล OCR (ใช้ savedMessage.id แทน message.id)
       const flexContents = FlexMessageTemplates.createOCRResultFlex(
         ocrText,
-        message.id,
+        savedMessage.id, // ใช้ savedMessage.id เพื่อให้สามารถแก้ไขได้
         userId,
         null // ไม่ส่ง imageUrl
       );

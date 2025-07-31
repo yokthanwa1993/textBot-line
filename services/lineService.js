@@ -13,31 +13,41 @@ export class LineService {
   }
 
   // === Message Storage ===
-  addMessage(text, userId) {
-    const message = {
-      id: this.messageIdCounter.toString(),
-      text: text,
-      userId: userId,
-      timestamp: new Date().toISOString()
-    };
-    
-    this.messages.push(message);
-    this.messageIdCounter++;
-    
-    console.log(`เก็บข้อความใหม่: ${text} จากผู้ใช้: ${userId}`);
-    return message;
+  async addMessage(text, userId) {
+    try {
+      const message = {
+        id: this.messageIdCounter.toString(),
+        text: text,
+        userId: userId,
+        timestamp: new Date().toISOString()
+      };
+      
+      this.messages.push(message);
+      this.messageIdCounter++;
+      
+      console.log(`เก็บข้อความใหม่: ${text} จากผู้ใช้: ${userId}`);
+      return message;
+    } catch (error) {
+      console.error('Error adding message:', error);
+      throw new Error(`Failed to add message: ${error.message}`);
+    }
   }
 
-  editMessage(messageId, newText) {
-    const messageIndex = this.messages.findIndex(msg => msg.id === messageId);
-    if (messageIndex !== -1) {
-      this.messages[messageIndex].text = newText;
-      this.messages[messageIndex].timestamp = new Date().toISOString();
-      console.log(`แก้ไขข้อความ ID: ${messageId} เป็น: ${newText}`);
-      return this.messages[messageIndex];
+  async editMessage(messageId, newText) {
+    try {
+      const messageIndex = this.messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex !== -1) {
+        this.messages[messageIndex].text = newText;
+        this.messages[messageIndex].timestamp = new Date().toISOString();
+        console.log(`แก้ไขข้อความ ID: ${messageId} เป็น: ${newText}`);
+        return this.messages[messageIndex];
+      }
+      console.log(`ไม่พบข้อความ ID: ${messageId} ที่จะแก้ไข`);
+      return null;
+    } catch (error) {
+      console.error('Error editing message:', error);
+      throw new Error(`Failed to edit message: ${error.message}`);
     }
-    console.log(`ไม่พบข้อความ ID: ${messageId} ที่จะแก้ไข`);
-    return null;
   }
 
   // === Message Retrieval ===
