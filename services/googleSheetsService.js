@@ -84,7 +84,16 @@ export class GoogleSheetsService {
       // หา Sheet ID ที่ถูกต้อง
       const sheetId = await this.getSheetId();
 
-      // ขั้นตอนที่ 1: แทรกแถวใหม่ที่แถวที่ 2 (หลังหัวตาราง)
+      // ขั้นตอนที่ 1: หาแถวล่างสุดที่มีข้อมูล
+      const dataResponse = await this.sheets.spreadsheets.values.get({
+        spreadsheetId: this.spreadsheetId,
+        range: `${this.sheetName}!A:B`
+      });
+      
+      const rows = dataResponse.data.values || [];
+      const lastRowIndex = rows.length; // แถวล่างสุดที่มีข้อมูล
+
+      // ขั้นตอนที่ 2: แทรกแถวใหม่ที่แถวที่ 2 (หลังหัวตาราง)
       const insertRequest = {
         spreadsheetId: this.spreadsheetId,
         resource: {
@@ -96,7 +105,7 @@ export class GoogleSheetsService {
                 startIndex: 1, // แทรกที่แถวที่ 2 (index 1)
                 endIndex: 2    // แทรก 1 แถว
               },
-              inheritFromBefore: true // คัดลอกฟอร์แมตจากแถวก่อนหน้า
+              inheritFromBefore: false // ไม่ใช้ฟอร์แมตจากแถวก่อนหน้า
             }
           }]
         }
@@ -104,7 +113,37 @@ export class GoogleSheetsService {
 
       await this.sheets.spreadsheets.batchUpdate(insertRequest);
 
-      // ขั้นตอนที่ 2: เพิ่มข้อมูลในแถวที่แทรกใหม่
+      // ขั้นตอนที่ 3: คัดลอกฟอร์แมตจากแถวล่างสุด (ถ้ามีข้อมูล)
+      if (lastRowIndex > 1) { // มีข้อมูลมากกว่าแค่หัวตาราง
+        const copyFormatRequest = {
+          spreadsheetId: this.spreadsheetId,
+          resource: {
+            requests: [{
+              copyPaste: {
+                source: {
+                  sheetId: sheetId,
+                  startRowIndex: lastRowIndex, // แถวล่างสุดที่มีข้อมูล (หลังจากแทรกแล้ว +1)
+                  endRowIndex: lastRowIndex + 1,
+                  startColumnIndex: 0,
+                  endColumnIndex: 2
+                },
+                destination: {
+                  sheetId: sheetId,
+                  startRowIndex: 1, // แถวที่ 2 (แถวที่เพิ่งแทรก)
+                  endRowIndex: 2,
+                  startColumnIndex: 0,
+                  endColumnIndex: 2
+                },
+                pasteType: 'PASTE_FORMAT' // คัดลอกแค่ฟอร์แมต
+              }
+            }]
+          }
+        };
+
+        await this.sheets.spreadsheets.batchUpdate(copyFormatRequest);
+      }
+
+      // ขั้นตอนที่ 4: เพิ่มข้อมูลในแถวที่แทรกใหม่
       const values = [
         [
           dateFormatted,      // คอลัมน์ A: วันที่ในรูปแบบ DD/MM/YYYY
