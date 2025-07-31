@@ -1,10 +1,12 @@
 import { middleware, validateSignature } from '@line/bot-sdk';
 import { LineService } from '../services/lineService.js';
 import { FlexMessageTemplates } from '../utils/flexMessages.js';
+import { GoogleSheetsService } from '../services/googleSheetsService.js';
 
 export class WebhookHandler {
   constructor(lineService) {
     this.lineService = lineService;
+    this.googleSheetsService = new GoogleSheetsService();
     this.config = {
       channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
       channelSecret: process.env.LINE_CHANNEL_SECRET,
@@ -93,6 +95,14 @@ export class WebhookHandler {
 
     // เก็บข้อความจริงและได้ messageId
     const savedMessage = await this.lineService.addMessage(text, userId);
+    
+    // เก็บข้อความลง Google Sheets
+    try {
+      await this.googleSheetsService.addMessage(text, userId, 'TEXT');
+      console.log('✅ Text message saved to Google Sheets');
+    } catch (error) {
+      console.error('❌ Failed to save text message to Google Sheets:', error);
+    }
 
     // ตรวจสอบ reply token สำหรับ test mode
     if (!replyToken || replyToken === 'test-token-123') {
@@ -199,6 +209,14 @@ export class WebhookHandler {
       // บันทึกข้อความ OCR ลงใน storage
       const savedMessage = await this.lineService.addMessage(ocrText, userId);
       console.log('Saved OCR message:', savedMessage);
+      
+      // เก็บข้อความ OCR ลง Google Sheets
+      try {
+        await this.googleSheetsService.addMessage(ocrText, userId, 'OCR');
+        console.log('✅ OCR message saved to Google Sheets');
+      } catch (error) {
+        console.error('❌ Failed to save OCR message to Google Sheets:', error);
+      }
 
       // สร้าง Flex Message สำหรับแสดงผล OCR (ใช้ savedMessage.id แทน message.id)
       const flexContents = FlexMessageTemplates.createOCRResultFlex(
