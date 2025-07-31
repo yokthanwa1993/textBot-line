@@ -113,35 +113,39 @@ export class GoogleSheetsService {
 
       await this.sheets.spreadsheets.batchUpdate(insertRequest);
 
-      // ขั้นตอนที่ 3: คัดลอกฟอร์แมตจากแถวล่างสุด (ถ้ามีข้อมูล)
-      if (lastRowIndex > 1) { // มีข้อมูลมากกว่าแค่หัวตาราง
-        const copyFormatRequest = {
-          spreadsheetId: this.spreadsheetId,
-          resource: {
-            requests: [{
-              copyPaste: {
-                source: {
-                  sheetId: sheetId,
-                  startRowIndex: lastRowIndex, // แถวล่างสุดที่มีข้อมูล (หลังจากแทรกแล้ว +1)
-                  endRowIndex: lastRowIndex + 1,
-                  startColumnIndex: 0,
-                  endColumnIndex: 2
-                },
-                destination: {
-                  sheetId: sheetId,
-                  startRowIndex: 1, // แถวที่ 2 (แถวที่เพิ่งแทรก)
-                  endRowIndex: 2,
-                  startColumnIndex: 0,
-                  endColumnIndex: 2
-                },
-                pasteType: 'PASTE_FORMAT' // คัดลอกแค่ฟอร์แมต
-              }
-            }]
-          }
-        };
+      // ขั้นตอนที่ 3: ตั้งค่าฟอร์แมตแบบกำหนดเอง
+      const formatRequest = {
+        spreadsheetId: this.spreadsheetId,
+        resource: {
+          requests: [{
+            repeatCell: {
+              range: {
+                sheetId: sheetId,
+                startRowIndex: 1, // แถวที่ 2 (แถวที่เพิ่งแทรก)
+                endRowIndex: 2,
+                startColumnIndex: 0,
+                endColumnIndex: 2
+              },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: {
+                    red: 1.0,   // สีขาว
+                    green: 1.0,
+                    blue: 1.0
+                  },
+                  textFormat: {
+                    fontSize: 15,
+                    fontFamily: "Arial" // ฟอนต์เริ่มต้น
+                  }
+                }
+              },
+              fields: "userEnteredFormat(backgroundColor,textFormat)"
+            }
+          }]
+        }
+      };
 
-        await this.sheets.spreadsheets.batchUpdate(copyFormatRequest);
-      }
+      await this.sheets.spreadsheets.batchUpdate(formatRequest);
 
       // ขั้นตอนที่ 4: เพิ่มข้อมูลในแถวที่แทรกใหม่
       const values = [

@@ -38,31 +38,47 @@ export class LineService {
 
   async editMessage(messageId, newText) {
     try {
+      console.log(`🔧 Attempting to edit message ID: ${messageId}`);
+      console.log(`📝 New text: ${newText}`);
+      console.log(`📊 Total messages in memory: ${this.messages.length}`);
+      
       const messageIndex = this.messages.findIndex(msg => msg.id === messageId);
+      console.log(`🔍 Found message at index: ${messageIndex}`);
+      
       if (messageIndex !== -1) {
         const originalText = this.messages[messageIndex].text;
+        console.log(`📄 Original text: ${originalText}`);
         
         // อัปเดตใน memory
         this.messages[messageIndex].text = newText;
         this.messages[messageIndex].timestamp = new Date().toISOString();
-        console.log(`แก้ไขข้อความ ID: ${messageId} เป็น: ${newText}`);
+        console.log(`✅ Updated message in memory`);
         
         // อัปเดตใน Google Sheets
         if (this.googleSheetsService) {
           try {
-            await this.googleSheetsService.editMessage(originalText, newText);
-            console.log('✅ Message updated in Google Sheets');
+            console.log(`📊 Updating Google Sheets...`);
+            const result = await this.googleSheetsService.editMessage(originalText, newText);
+            if (result.success) {
+              console.log('✅ Message updated in Google Sheets successfully');
+            } else {
+              console.error('❌ Google Sheets update failed:', result.message);
+            }
           } catch (error) {
-            console.error('❌ Failed to update message in Google Sheets:', error);
+            console.error('❌ Exception updating Google Sheets:', error);
           }
+        } else {
+          console.log('⚠️ Google Sheets service not available');
         }
         
         return this.messages[messageIndex];
       }
-      console.log(`ไม่พบข้อความ ID: ${messageId} ที่จะแก้ไข`);
+      
+      console.log(`❌ Message ID ${messageId} not found in memory`);
+      console.log('Available message IDs:', this.messages.map(m => m.id));
       return null;
     } catch (error) {
-      console.error('Error editing message:', error);
+      console.error('❌ Error editing message:', error);
       throw new Error(`Failed to edit message: ${error.message}`);
     }
   }

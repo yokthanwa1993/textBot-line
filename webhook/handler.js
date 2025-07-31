@@ -345,26 +345,46 @@ export class WebhookHandler {
       const alt = 'บันทึกข้อความแล้ว';
       return await this.lineService.replyFlexMessage(event.replyToken, alt, flex);
     } else if (data.startsWith('action=save_and_close_liff')) {
-      // กรณีเปิด LIFF บันทึกและปิดหน้า ให้ส่ง Flex Message ยืนยันการบันทึก
+      // กรณีเปิด LIFF บันทึกและปิดหน้า
       const params = new URLSearchParams(data.replace('action=save_and_close_liff&', ''));
       const msg = params.get('message') || '';
       const uid = params.get('userId') || '';
       const mid = params.get('messageId') || '';
 
-      // บันทึกข้อความลงระบบก่อน
-      const savedMessage = await this.lineService.addMessage(msg, uid);
       console.log('=== SAVE_AND_CLOSE_LIFF DEBUG ===');
       console.log('Message:', msg);
       console.log('UserId:', uid);
+      console.log('MessageId:', mid);
+
+      let savedMessage;
+      let altText;
+
+      // ตรวจสอบว่าเป็นการแก้ไขหรือเพิ่มใหม่
+      if (mid && mid.trim() !== '') {
+        // กรณีแก้ไขข้อความ
+        console.log('🔧 Editing existing message...');
+        savedMessage = await this.lineService.editMessage(mid, msg);
+        altText = savedMessage ? 'แก้ไขข้อความสำเร็จ' : 'แก้ไขข้อความไม่สำเร็จ';
+        
+        if (!savedMessage) {
+          console.error('❌ Failed to edit message');
+          return await this.lineService.replyMessage(event.replyToken, 'แก้ไขข้อความไม่สำเร็จ กรุณาลองใหม่');
+        }
+      } else {
+        // กรณีเพิ่มข้อความใหม่
+        console.log('➕ Adding new message...');
+        savedMessage = await this.lineService.addMessage(msg, uid);
+        altText = 'บันทึกข้อความสำเร็จ';
+      }
+
       console.log('SavedMessage:', savedMessage);
 
       const ts = new Date().toISOString();
       const flex = FlexMessageTemplates.createEditResultFlex(msg, uid, ts, savedMessage.id);
       console.log('Generated Flex:', JSON.stringify(flex, null, 2));
-      const alt = 'แก้ไขข้อความสำเร็จ';
-      console.log('Alt text:', alt);
+      console.log('Alt text:', altText);
 
-      const result = await this.lineService.replyFlexMessage(event.replyToken, alt, flex);
+      const result = await this.lineService.replyFlexMessage(event.replyToken, altText, flex);
       console.log('Reply result:', result);
       return result;
     } else {
