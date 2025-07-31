@@ -134,6 +134,13 @@ export class WebhookHandler {
         return { success: true, message: 'Image received (test mode)', sentMessages: 0 };
       }
 
+      // ตรวจสอบว่ามี OCR API URL หรือไม่
+      const ocrApiUrl = process.env.OCR_API_URL;
+      if (!ocrApiUrl) {
+        console.log('OCR_API_URL not configured, sending simple confirmation');
+        return await this.lineService.replyMessage(replyToken, '✅ ได้รับรูปภาพแล้วครับ แต่ยังไม่ได้ตั้งค่า OCR API');
+      }
+
       // ส่งข้อความยืนยันการรับรูปภาพก่อน
       await this.lineService.replyMessage(replyToken, '📸 ได้รับรูปภาพแล้วครับ กำลังประมวลผล OCR...');
       
@@ -141,18 +148,13 @@ export class WebhookHandler {
       const imageBuffer = await this.lineService.getMessageContent(message.id);
       console.log(`Downloaded image buffer size: ${imageBuffer.length} bytes`);
       
-      // ตรวจสอบว่ามี OCR API URL หรือไม่
-      const ocrApiUrl = process.env.OCR_API_URL;
-      if (!ocrApiUrl) {
-        console.log('OCR_API_URL not configured, sending simple confirmation');
-        return await this.lineService.sendTextMessage(userId, '✅ ได้รับรูปภาพแล้วครับ แต่ยังไม่ได้ตั้งค่า OCR API');
-      }
-      
       // สร้าง URL สำหรับรูปภาพ
       const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
       const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
       
       console.log('Calling OCR API:', ocrApiUrl);
+      console.log('Image URL:', imageUrl);
+      console.log('Access Token (first 20 chars):', lineChannelAccessToken?.substring(0, 20) + '...');
       
       // เรียก OCR API ด้วย POST method
       const ocrResponse = await fetch(`${ocrApiUrl}/ocr`, {
@@ -164,8 +166,7 @@ export class WebhookHandler {
         body: JSON.stringify({
           url: imageUrl,
           authorization: `Bearer ${lineChannelAccessToken}`
-        }),
-        timeout: 30000 // 30 seconds timeout
+        })
       });
       
       if (!ocrResponse.ok) {
@@ -176,87 +177,37 @@ export class WebhookHandler {
           responseText: errorText
         });
         
-        // ส่งข้อความแจ้งเตือนแทน
-        return await this.lineService.sendTextMessage(userId, `⚠️ OCR API ไม่สามารถใช้งานได้ในขณะนี้ (Error ${ocrResponse.status})\nได้รับรูปภาพแล้วครับ`);
+        // ส่งข้อความแจ้งเตือนแทน (ใช้ push message เพราะ reply token ใช้ไปแล้ว)
+        return await this.lineService.sendTextMessage(userId, `⚠️ OCR API ไม่สามารถใช้งานได้ในขณะนี้ (Error ${ocrResponse.status})`);
       }
       
       const ocrResult = await ocrResponse.json();
+      console.log('OCR Result:', JSON.stringify(ocrResult, null, 2));
       
       if (!ocrResult.success) {
         console.error('OCR processing failed:', ocrResult.error);
-        return await this.lineService.sendTextMessage(userId, `⚠️ ไม่สามารถประมวลผล OCR ได้: ${ocrResult.error || 'Unknown error'}\nได้รับรูปภาพแล้วครับ`);
+        return await this.lineService.sendTextMessage(userId, `⚠️ ไม่สามารถประมวลผล OCR ได้: ${ocrResult.error || 'Unknown error'}`);
       }
       
       // สร้าง Flex Message สำหรับแสดงผล OCR
-      const flexMessage = {
-        type: 'flex',
-        altText: 'ผลการ OCR',
-        contents: {
-          type: 'bubble',
-          body: {
-            type: 'box',
-            layout: 'vertical',
-            contents: [
-              {
-                type: 'text',
-                text: '🔍 ผลการ OCR',
-                weight: 'bold',
-                size: 'lg',
-                color: '#1DB446'
-              },
-              {
-                type: 'separator',
-                margin: 'md'
-              },
-              {
-                type: 'text',
-                text: ocrResult.text || 'ไม่พบข้อความในรูปภาพ',
-                wrap: true,
-                margin: 'md',
-                size: 'sm'
-              },
-              {
-                type: 'separator',
-                margin: 'md'
-              },
-              {
-                type: 'box',
-                layout: 'horizontal',
-                contents: [
-                  {
-                    type: 'text',
-                    text: `⏱️ ${ocrResult.processing_time?.toFixed(2) || '0.00'}s`,
-                    size: 'xs',
-                    color: '#666666'
-                  },
-                  {
-                    type: 'text',
-                    text: `📏 ${((ocrResult.file_size || imageBuffer.length) / 1024).toFixed(1)}KB`,
-                    size: 'xs',
-                    color: '#666666',
-                    align: 'end'
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      };
+      const flexContents = FlexMessageTemplates.createOCRResultFlex(
+        ocrResult.text, 
+        message.id, 
+        userId, 
+        `https://api-data.line.me/v2/bot/message/${message.id}/content`
+      );
       
-      return await this.lineService.sendFlexMessageObject(userId, 'ผลการ OCR', flexMessage.contents);
+      // ส่ง Flex Message ด้วย push message (เพราะ reply token ใช้ไปแล้ว)
+      return await this.lineService.sendFlexMessageObject(userId, 'ผลการ OCR', flexContents);
       
     } catch (error) {
       console.error('Error processing image with OCR:', error);
       
       // ส่งข้อความแจ้งข้อผิดพลาด
       try {
-        if (replyToken && replyToken !== 'test-token-123') {
-          return await this.lineService.replyMessage(replyToken, `❌ เกิดข้อผิดพลาด: ${error.message}\nแต่ได้รับรูปภาพแล้วครับ`);
-        } else {
-          return await this.lineService.sendTextMessage(userId, `❌ เกิดข้อผิดพลาด: ${error.message}\nแต่ได้รับรูปภาพแล้วครับ`);
-        }
-      } catch (replyError) {
-        console.error('Error sending error message:', replyError);
+        return await this.lineService.sendTextMessage(userId, `❌ เกิดข้อผิดพลาด: ${error.message}`);
+      } catch (sendError) {
+        console.error('Error sending error message:', sendError);
         return { success: false, message: `Failed to process image and send error message: ${error.message}`, sentMessages: 0 };
       }
     }

@@ -58,6 +58,10 @@ app.get('/health', (req, res) => {
 // LINE Webhook endpoint (with proper error handling)
 app.post('/webhook', async (req, res) => {
   try {
+    console.log('=== WEBHOOK REQUEST ===');
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    
     // ตรวจสอบว่ามี events หรือไม่
     const events = req.body.events || [];
     console.log(`Received ${events.length} webhook events`);
