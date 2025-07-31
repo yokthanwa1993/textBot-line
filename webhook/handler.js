@@ -92,7 +92,7 @@ export class WebhookHandler {
     console.log(`Received text message from ${userId}: ${text}`);
 
     // เก็บข้อความจริงและได้ messageId
-    const savedMessage = this.lineService.addMessage(text, userId);
+    const savedMessage = await this.lineService.addMessage(text, userId);
 
     // ตรวจสอบ reply token สำหรับ test mode
     if (!replyToken || replyToken === 'test-token-123') {
