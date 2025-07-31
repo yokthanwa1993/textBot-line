@@ -131,21 +131,46 @@ export class WebhookHandler {
       // ดาวน์โหลดรูปภาพจาก LINE
       const imageBuffer = await this.lineService.getMessageContent(message.id);
       
-      // แปลงเป็น base64
-      const base64Image = imageBuffer.toString('base64');
-      const dataUrl = `data:image/jpeg;base64,${base64Image}`;
+      // สร้าง URL สำหรับรูปภาพ (ถ้ามี LINE Content API URL)
+      // หรือใช้ base64 เป็น fallback
+      let imageUrl = null;
       
-      // เรียก OCR API ผ่าน external service โดยส่ง base64
-      const ocrApiUrl = process.env.OCR_API_URL || 'https://ocr.wwoom.com/api/v1';
-      const ocrResponse = await fetch(ocrApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          base64Image: base64Image
-        })
-      });
+      // ลองสร้าง URL จาก LINE Content API
+      try {
+        const lineChannelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+        if (lineChannelAccessToken) {
+          imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
+        }
+      } catch (urlError) {
+        console.log('Could not create LINE content URL, will use base64 fallback');
+      }
+      
+      // เรียก OCR API ผ่าน external service โดยส่ง URL
+      const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1/';
+      
+      let ocrResponse;
+      if (imageUrl) {
+        // ใช้ URL parameter - ระบบจะต่อ ?url= เอง
+        const urlWithParam = `${ocrApiUrl}?url=${encodeURIComponent(imageUrl)}`;
+        ocrResponse = await fetch(urlWithParam, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`
+          }
+        });
+      } else {
+        // Fallback ไปใช้ base64
+        const base64Image = imageBuffer.toString('base64');
+        ocrResponse = await fetch(ocrApiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            base64Image: base64Image
+          })
+        });
+      }
       
       if (!ocrResponse.ok) {
         throw new Error(`OCR API error: ${ocrResponse.status}`);
