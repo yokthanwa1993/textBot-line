@@ -146,21 +146,25 @@ export class WebhookHandler {
       }
       
       // เรียก OCR API ผ่าน external service โดยส่ง URL
-      const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1/';
+      const ocrApiUrl = process.env.OCR_API_URL || 'https://typhoon-ocr.lslly.com/api/v1';
       
       let ocrResponse;
       if (imageUrl) {
         // ใช้ URL parameter - ระบบจะต่อ ?url= เอง
         const urlWithParam = `${ocrApiUrl}?url=${encodeURIComponent(imageUrl)}`;
+        console.log('Calling OCR API with URL:', urlWithParam);
+        
         ocrResponse = await fetch(urlWithParam, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`
+            'User-Agent': 'Mozilla/5.0 (compatible; LINE-Bot/1.0)'
           }
         });
       } else {
         // Fallback ไปใช้ base64
         const base64Image = imageBuffer.toString('base64');
+        console.log('Calling OCR API with base64 fallback');
+        
         ocrResponse = await fetch(ocrApiUrl, {
           method: 'POST',
           headers: {
@@ -173,7 +177,13 @@ export class WebhookHandler {
       }
       
       if (!ocrResponse.ok) {
-        throw new Error(`OCR API error: ${ocrResponse.status}`);
+        const errorText = await ocrResponse.text();
+        console.error('OCR API error details:', {
+          status: ocrResponse.status,
+          statusText: ocrResponse.statusText,
+          responseText: errorText
+        });
+        throw new Error(`OCR API error: ${ocrResponse.status} - ${errorText}`);
       }
       
       const ocrResult = await ocrResponse.json();
