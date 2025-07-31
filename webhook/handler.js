@@ -98,7 +98,7 @@ export class WebhookHandler {
     
     // เก็บข้อความลง Google Sheets
     try {
-      await this.googleSheetsService.addMessage(text, userId, 'TEXT');
+      await this.googleSheetsService.addMessage(text);
       console.log('✅ Text message saved to Google Sheets');
     } catch (error) {
       console.error('❌ Failed to save text message to Google Sheets:', error);
@@ -212,7 +212,7 @@ export class WebhookHandler {
       
       // เก็บข้อความ OCR ลง Google Sheets
       try {
-        await this.googleSheetsService.addMessage(ocrText, userId, 'OCR');
+        await this.googleSheetsService.addMessage(ocrText);
         console.log('✅ OCR message saved to Google Sheets');
       } catch (error) {
         console.error('❌ Failed to save OCR message to Google Sheets:', error);

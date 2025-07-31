@@ -50,52 +50,84 @@ export class GoogleSheetsService {
     }
   }
 
-  // เพิ่มข้อความลง Google Sheets
-  async addMessage(text, userId, messageType = 'TEXT', timestamp = null) {
+  // หา Sheet ID จากชื่อ Sheet
+  async getSheetId() {
+    try {
+      const response = await this.sheets.spreadsheets.get({
+        spreadsheetId: this.spreadsheetId
+      });
+
+      const sheet = response.data.sheets.find(s => s.properties.title === this.sheetName);
+      return sheet ? sheet.properties.sheetId : 0; // ถ้าไม่เจอให้ใช้ 0
+    } catch (error) {
+      console.error('Error getting sheet ID:', error);
+      return 0; // fallback เป็น 0
+    }
+  }
+
+  // เพิ่มข้อความลง Google Sheets (แทรกจากล่างขึ้นบน)
+  async addMessage(text, timestamp = null) {
     try {
       if (!this.sheets) {
         await this.initialize();
       }
 
-      const now = timestamp || new Date().toISOString();
-      const thaiTime = new Date(now).toLocaleString('th-TH', {
+      const now = timestamp || new Date();
+      // จัดรูปแบบวันที่เป็น DD/MM/YYYY
+      const dateFormatted = now.toLocaleDateString('th-TH', {
         timeZone: 'Asia/Bangkok',
-        year: 'numeric',
-        month: '2-digit',
         day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        month: '2-digit',
+        year: 'numeric'
       });
 
-      // ข้อมูลที่จะเพิ่มลง sheet
+      // หา Sheet ID ที่ถูกต้อง
+      const sheetId = await this.getSheetId();
+
+      // ขั้นตอนที่ 1: แทรกแถวใหม่ที่แถวที่ 2 (หลังหัวตาราง)
+      const insertRequest = {
+        spreadsheetId: this.spreadsheetId,
+        resource: {
+          requests: [{
+            insertDimension: {
+              range: {
+                sheetId: sheetId,
+                dimension: 'ROWS',
+                startIndex: 1, // แทรกที่แถวที่ 2 (index 1)
+                endIndex: 2    // แทรก 1 แถว
+              },
+              inheritFromBefore: true // คัดลอกฟอร์แมตจากแถวก่อนหน้า
+            }
+          }]
+        }
+      };
+
+      await this.sheets.spreadsheets.batchUpdate(insertRequest);
+
+      // ขั้นตอนที่ 2: เพิ่มข้อมูลในแถวที่แทรกใหม่
       const values = [
         [
-          thaiTime,           // วันที่และเวลา
-          userId,             // User ID
-          messageType,        // ประเภทข้อความ (TEXT, OCR)
-          text,               // ข้อความ
-          text.length,        // ความยาวข้อความ
-          now                 // ISO timestamp
+          dateFormatted,      // คอลัมน์ A: วันที่ในรูปแบบ DD/MM/YYYY
+          text                // คอลัมน์ B: ข้อความที่จะบันทึก
         ]
       ];
 
-      const request = {
+      const updateRequest = {
         spreadsheetId: this.spreadsheetId,
-        range: `${this.sheetName}!A:F`, // คอลัมน์ A ถึง F
+        range: `${this.sheetName}!A2:B2`, // แถวที่ 2 (แถวที่เพิ่งแทรก)
         valueInputOption: 'RAW',
         resource: {
           values: values
         }
       };
 
-      const response = await this.sheets.spreadsheets.values.append(request);
-      console.log(`✅ Message added to Google Sheets: ${response.data.updates.updatedCells} cells updated`);
+      const response = await this.sheets.spreadsheets.values.update(updateRequest);
+      console.log(`✅ Message added to Google Sheets: ${response.data.updatedCells} cells updated`);
       
       return {
         success: true,
         message: 'Message added to Google Sheets successfully',
-        updatedCells: response.data.updates.updatedCells
+        updatedCells: response.data.updatedCells
       };
 
     } catch (error) {
@@ -115,12 +147,12 @@ export class GoogleSheetsService {
       }
 
       const headers = [
-        ['วันที่เวลา', 'User ID', 'ประเภท', 'ข้อความ', 'ความยาว', 'Timestamp']
+        ['วันที่', 'ข้อความ'] // เหลือแค่ 2 คอลัมน์
       ];
 
       const request = {
         spreadsheetId: this.spreadsheetId,
-        range: `${this.sheetName}!A1:F1`,
+        range: `${this.sheetName}!A1:B1`, // เปลี่ยนเป็น A1:B1
         valueInputOption: 'RAW',
         resource: {
           values: headers
@@ -147,19 +179,15 @@ export class GoogleSheetsService {
 
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${this.sheetName}!A:F`,
+        range: `${this.sheetName}!A:B`, // เปลี่ยนเป็น A:B
       });
 
       const rows = response.data.values || [];
       
       // ข้าม header row และจำกัดจำนวน
       const messages = rows.slice(1, limit + 1).map(row => ({
-        datetime: row[0] || '',
-        userId: row[1] || '',
-        type: row[2] || '',
-        text: row[3] || '',
-        length: parseInt(row[4]) || 0,
-        timestamp: row[5] || ''
+        date: row[0] || '',      // วันที่
+        text: row[1] || ''       // ข้อความ
       }));
 
       return {
